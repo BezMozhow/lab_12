@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
 import sqlite3
 import hashlib
+import os
 
 class AuthenticationApp:
     def __init__(self, root):
@@ -10,12 +11,33 @@ class AuthenticationApp:
         self.root.title("Додаток для аутентифікації")
         self.root.geometry("400x400")
         self.create_tables()
+        self.check_key_file()  # Виклик методу для перевірки ключового файлу
         self.setup_gui()
         self.max_login_attempts = 4  # Максимальна кількість невдалих спроб входу
 
+    def check_key_file(self):
+        # Перевірка наявності і вмісту файлу "key.txt"
+        key_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../key.txt"))
+
+        if not os.path.exists(key_file_path):
+            messagebox.showerror("Error", "Файл key.txt не знайдений. Програма буде закрита.")
+            self.root.destroy()
+            return
+
+        with open(key_file_path, "r") as key_file:
+            correct_key = key_file.read().strip()
+
+        if correct_key != "1111":
+            messagebox.showerror("Error", "Неправильний ключ у файлі key.txt. Програма буде закрита.")
+            self.root.destroy()
+    
+    
     def create_tables(self):
-        # Створення таблиць для баз даних користувачів та спроб входу
-        conn = sqlite3.connect("users.db")
+        # Отримання шляху до поточної директорії
+        current_directory = os.path.dirname(__file__)
+
+        # Створення таблиць для баз даних користувачів та спроб входу в поточній директорії
+        conn = sqlite3.connect(os.path.join(current_directory, "users.db"))
         cursor = conn.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS users
                           (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +48,7 @@ class AuthenticationApp:
         conn.commit()
         conn.close()
 
-        conn = sqlite3.connect("login_attempts.db")
+        conn = sqlite3.connect(os.path.join(current_directory, "login_attempts.db"))
         cursor = conn.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS login_attempts
                           (id INTEGER PRIMARY KEY AUTOINCREMENT,
