@@ -32,6 +32,24 @@ class AuthenticationApp:
             self.root.destroy()
     
     
+from tkinter import *
+from tkinter import ttk, simpledialog, messagebox
+import sqlite3
+import hashlib
+import os  # Додавання імпорту os
+
+class AuthenticationApp:
+    def __init__(self, root):
+        # Ініціалізація головного вікна додатку
+        self.root = root
+        self.root.title("Додаток для аутентифікації")
+        self.root.geometry("400x400")
+        self.create_tables()
+        self.check_key_file()  # Виклик методу для перевірки ключового файлу
+        self.setup_gui()
+        self.max_login_attempts = 4  # Максимальна кількість невдалих спроб входу
+
+
     def create_tables(self):
         # Отримання шляху до поточної директорії
         current_directory = os.path.dirname(__file__)
@@ -56,6 +74,23 @@ class AuthenticationApp:
                            attempts INTEGER DEFAULT 0)''')
         conn.commit()
         conn.close()
+
+    def check_key_file(self):
+        # Перевірка наявності і вмісту файлу "key.txt"
+        key_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../key.txt"))
+
+        if not os.path.exists(key_file_path):
+            messagebox.showerror("Error", "Файл key.txt не знайдений. Програма буде закрита.")
+            self.root.destroy()
+            return
+
+        with open(key_file_path, "r") as key_file:
+            correct_key = key_file.read().strip()
+
+        if correct_key != "1111":
+            messagebox.showerror("Error", "Неправильний ключ у файлі key.txt. Програма буде закрита.")
+            self.root.destroy()
+
 
     def register(self):
         # Функція реєстрації користувача
